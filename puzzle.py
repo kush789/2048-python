@@ -35,18 +35,32 @@ class GameGrid(Frame):
         self.master.bind("<Key>", self.key_down)
 
         #self.gamelogic = gamelogic
-        self.commands = {   KEY_UP: up, KEY_DOWN: down, KEY_LEFT: left, KEY_RIGHT: right,
-                            KEY_UP_ALT: up, KEY_DOWN_ALT: down, KEY_LEFT_ALT: left, KEY_RIGHT_ALT: right }
+        self.playerOneCommands = {
+                                    KEY_UP: up, \
+                                    KEY_DOWN: down, \
+                                    KEY_LEFT: left, \
+                                    KEY_RIGHT: right
+                                 }
+
+        self.playerTwoCommands = {
+                                    KEY_UP_ALT: up, \
+                                    KEY_DOWN_ALT: down, \
+                                    KEY_LEFT_ALT: left, \
+                                    KEY_RIGHT_ALT: right 
+                                 }
 
         self.grid_cells = []
         self.init_grid()
         self.init_matrix()
         self.update_grid_cells()
-        
+
+        self.turn = 1      # Player's turn (1, 2)
+
         self.mainloop()
 
     def init_grid(self):
-        background = Frame(self, bg=BACKGROUND_COLOR_GAME, width=SIZE, height=SIZE)
+        background = Frame(self, bg = BACKGROUND_COLOR_GAME, width = SIZE, \
+                           height = SIZE)
         background.grid()
         for i in range(GRID_LEN):
             grid_row = []
@@ -66,10 +80,14 @@ class GameGrid(Frame):
     def init_matrix(self):
         self.matrix = new_game(4)
 
-        self.matrix=add_two(self.matrix)
-        self.matrix=add_two(self.matrix)
+        self.matrix = addNewValue(self.matrix)
+        self.matrix = addNewValue(self.matrix)
 
     def update_grid_cells(self):
+        """
+            Updates colours for each cell in grid
+        """
+
         for i in range(GRID_LEN):
             for j in range(GRID_LEN):
                 new_number = self.matrix[i][j]
@@ -81,10 +99,11 @@ class GameGrid(Frame):
         
     def key_down(self, event):
         key = repr(event.char)
-        if key in self.commands:
-            self.matrix,done = self.commands[repr(event.char)](self.matrix)
+
+        if key in self.playerOneCommands and self.turn == 1:
+            self.matrix, done = self.playerOneCommands[repr(event.char)](self.matrix)
             if done:
-                self.matrix = add_two(self.matrix)
+                self.matrix = addNewValue(self.matrix)
                 self.update_grid_cells()
                 done=False
                 if game_state(self.matrix)=='win':
@@ -94,11 +113,22 @@ class GameGrid(Frame):
                     self.grid_cells[1][1].configure(text="You",bg=BACKGROUND_COLOR_CELL_EMPTY)
                     self.grid_cells[1][2].configure(text="Lose!",bg=BACKGROUND_COLOR_CELL_EMPTY)
 
+                self.turn = 2           # Change turn only if valid move
 
-    def generate_next(self):
-        index = (self.gen(), self.gen())
-        while self.matrix[index[0]][index[1]] != 0:
-            index = (self.gen(), self.gen())
-        self.matrix[index[0]][index[1]] = 2
+        elif key in self.playerTwoCommands and self.turn == 2:
+
+            self.matrix, done = self.playerTwoCommands[repr(event.char)](self.matrix)
+            if done:
+                self.matrix = addNewValue(self.matrix)
+                self.update_grid_cells()
+                done=False
+                if game_state(self.matrix)=='win':
+                    self.grid_cells[1][1].configure(text="You",bg=BACKGROUND_COLOR_CELL_EMPTY)
+                    self.grid_cells[1][2].configure(text="Win!",bg=BACKGROUND_COLOR_CELL_EMPTY)
+                if game_state(self.matrix)=='lose':
+                    self.grid_cells[1][1].configure(text="You",bg=BACKGROUND_COLOR_CELL_EMPTY)
+                    self.grid_cells[1][2].configure(text="Lose!",bg=BACKGROUND_COLOR_CELL_EMPTY)
+
+                self.turn = 1           # Change turn only if valid move
 
 gamegrid = GameGrid()
