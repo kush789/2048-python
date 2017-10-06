@@ -80,8 +80,8 @@ class GameGrid(Frame):
     def init_matrix(self):
         self.matrix = new_game(4)
 
-        self.matrix = addNewValue(self.matrix)
-        self.matrix = addNewValue(self.matrix)
+        self.matrix = addNewValue(self.matrix, 1)
+        self.matrix = addNewValue(self.matrix, 1)
 
     def update_grid_cells(self):
         """
@@ -90,11 +90,11 @@ class GameGrid(Frame):
 
         for i in range(GRID_LEN):
             for j in range(GRID_LEN):
-                new_number = self.matrix[i][j]
+                new_number = self.matrix[i][j][0]
                 if new_number == 0:
-                    self.grid_cells[i][j].configure(text="", bg=BACKGROUND_COLOR_CELL_EMPTY)
+                    self.grid_cells[i][j].configure(text=str(self.matrix[i][j]), bg=BACKGROUND_COLOR_CELL_EMPTY)
                 else:
-                    self.grid_cells[i][j].configure(text=str(new_number), bg=BACKGROUND_COLOR_DICT[new_number], fg=CELL_COLOR_DICT[new_number])
+                    self.grid_cells[i][j].configure(text=str(self.matrix[i][j]), bg=BACKGROUND_COLOR_DICT[new_number], fg=CELL_COLOR_DICT[new_number])
         self.update_idletasks()
         
     def key_down(self, event):
@@ -103,9 +103,9 @@ class GameGrid(Frame):
         if key in self.playerOneCommands and self.turn == 1:
             self.matrix, done = self.playerOneCommands[repr(event.char)](self.matrix)
             if done:
-                self.matrix = addNewValue(self.matrix)
+                self.matrix = addNewValue(self.matrix, self.turn)
                 self.update_grid_cells()
-                done=False
+                done = False
                 if game_state(self.matrix)=='win':
                     self.grid_cells[1][1].configure(text="You",bg=BACKGROUND_COLOR_CELL_EMPTY)
                     self.grid_cells[1][2].configure(text="Win!",bg=BACKGROUND_COLOR_CELL_EMPTY)
@@ -119,9 +119,9 @@ class GameGrid(Frame):
 
             self.matrix, done = self.playerTwoCommands[repr(event.char)](self.matrix)
             if done:
-                self.matrix = addNewValue(self.matrix)
+                self.matrix = addNewValue(self.matrix, self.turn)
                 self.update_grid_cells()
-                done=False
+                done = False
                 if game_state(self.matrix)=='win':
                     self.grid_cells[1][1].configure(text="You",bg=BACKGROUND_COLOR_CELL_EMPTY)
                     self.grid_cells[1][2].configure(text="Win!",bg=BACKGROUND_COLOR_CELL_EMPTY)

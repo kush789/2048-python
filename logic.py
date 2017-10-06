@@ -26,7 +26,7 @@ def new_game(n):
     matrix = []
 
     for i in range(n):
-        matrix.append([0] * n)
+        matrix.append([(0, 0)] * n)
 
     return matrix
 
@@ -39,24 +39,26 @@ def new_game(n):
 # Must ensure that it is created on a zero entry
 # 1 mark for creating the correct loop
 
-def addNewValue(mat):
+def addNewValue(mat, turn):
     """
         Adds new value. 
         2 with prob 0.8 and 4 with prob 0.2
+
+        turn can be one of {1, 2}
     """
 
     # Find two random indices
     a = randint(0, len(mat)-1)
     b = randint(0, len(mat)-1)
-    while(mat[a][b] != 0):
+    while(mat[a][b][0] != 0):
         a = randint(0, len(mat)-1)
         b = randint(0, len(mat)-1)
 
     # Assign value (2, 4) with prob (0.8, 0.2)
     if np.random.uniform() < 0.8:
-        mat[a][b] = 2
+        mat[a][b] = [2, turn]
     else:
-        mat[a][b] = 4
+        mat[a][b] = [4, turn]
 
     return mat
 
@@ -76,25 +78,25 @@ def game_state(mat):
 
     for i in range(len(mat)):
         for j in range(len(mat[0])):
-            if mat[i][j] == 2048:
+            if mat[i][j][0] == 2048:
                 return 'win'
 
     for i in range(len(mat)-1): #intentionally reduced to check the row on the right and below
         for j in range(len(mat[0]) - 1): #more elegant to use exceptions but most likely this will be their solution
-            if mat[i][j] == mat[i+1][j] or mat[i][j+1] == mat[i][j]:
+            if mat[i][j][0] == mat[i + 1][j][0] or mat[i][j + 1][0] == mat[i][j][0]:
                 return 'not over'
 
     for i in range(len(mat)): #check for any zero entries
         for j in range(len(mat[0])):
-            if mat[i][j]==0:
+            if mat[i][j][0] == 0:
                 return 'not over'
 
-    for k in range(len(mat)-1): #to check the left/right entries on the last row
-        if mat[len(mat)-1][k]==mat[len(mat)-1][k+1]:
+    for k in range(len(mat) - 1): #to check the left/right entries on the last row
+        if mat[len(mat) - 1][k][0] == mat[len(mat) - 1][k + 1][0]:
             return 'not over'
 
-    for j in range(len(mat)-1): #check up/down entries on last column
-        if mat[j][len(mat)-1]==mat[j+1][len(mat)-1]:
+    for j in range(len(mat) - 1): #check up/down entries on last column
+        if mat[j][len(mat) - 1][0] == mat[j + 1][len(mat) - 1][0]:
             return 'not over'
 
     return 'lose'
@@ -113,10 +115,12 @@ def reverse(mat):
     """
         Reverses each row
     """
-
+    print ("reverse")
+    print (mat)
     new = []
     for i in range(len(mat)):
         new.append(mat[i][:: -1 ])
+    print (new)
     return new
 
 ###########
@@ -130,8 +134,15 @@ def reverse(mat):
 # 2 marks for correct solutions that work for all sizes of matrices
 
 def transpose(mat):
-
-    return np.transpose(mat).astype(int).tolist()
+    print ("transpose")
+    print (mat)
+    new=[]
+    for i in range(len(mat[0])):
+        new.append([])
+        for j in range(len(mat)):
+            new[i].append(mat[j][i])
+    print (new)
+    return new
 
 ##########
 # Task 3 #
@@ -153,17 +164,28 @@ def cover_up(mat):
         becomes [[1, 0, 0, 0], [1, 1, 1, 0], [1, 0, 0, 0], [1, 1, 1, 0]]
     """
 
-    new = np.zeros((4, 4)).astype(int)    
+    print ("shift")
+
+    print (mat)
+
+    new = [[], [], [], []]
     done = False
+
     for i in range(4):
-        count = 0
         for j in range(4):
-            if mat[i][j] != 0:
-                new[i][count] = mat[i][j]
-                if j != count:
+            if mat[i][j][0] != 0:
+                new[i].append([mat[i][j][0], mat[i][j][1]])
+                if len(new[i]) != j + 1:
                     done = True
-                count += 1
-    return (new.tolist(), done)
+
+        while len(new[i]) < 4:
+            new[i].append([0, 0])
+
+    del mat
+    print (new)
+    print (done)
+    return (new, done)
+
 
 def merge(mat):
     """
@@ -171,16 +193,15 @@ def merge(mat):
         mat  : Matrix after merging
         done : wether merge happened or not
     """
-
     done = False
 
     for i in range(4):
          for j in range(3):
-             if mat[i][j] == mat[i][j+1] and mat[i][j] != 0:
-                mat[i][j] *= 2
-                mat[i][j + 1] = 0
+             if mat[i][j][0] == mat[i][j+1][0] and mat[i][j][0] != 0:
+                newPos = (mat[i][j][0] * 2, mat[i][j][1])
+                mat[i][j] = newPos
+                mat[i][j + 1] = (0, 0)
                 done = True
-
     return (mat, done)
 
 
@@ -193,6 +214,7 @@ def up(game):
         # transpose again to get original direction
 
         game = transpose(game)
+
         game, shiftStatus = cover_up(game)
         game, mergeStatus = merge(game)
         done = shiftStatus or mergeStatus
