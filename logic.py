@@ -26,7 +26,7 @@ def new_game(n):
     matrix = []
 
     for i in range(n):
-        matrix.append([(0, 0)] * n)
+        matrix.append([[0, 0]] * n)
 
     return matrix
 
@@ -115,12 +115,11 @@ def reverse(mat):
     """
         Reverses each row
     """
-    print ("reverse")
-    print (mat)
     new = []
     for i in range(len(mat)):
         new.append(mat[i][:: -1 ])
-    print (new)
+
+    del mat
     return new
 
 ###########
@@ -134,14 +133,14 @@ def reverse(mat):
 # 2 marks for correct solutions that work for all sizes of matrices
 
 def transpose(mat):
-    print ("transpose")
-    print (mat)
+
     new=[]
+
     for i in range(len(mat[0])):
         new.append([])
         for j in range(len(mat)):
             new[i].append(mat[j][i])
-    print (new)
+    del mat
     return new
 
 ##########
@@ -164,13 +163,9 @@ def cover_up(mat):
         becomes [[1, 0, 0, 0], [1, 1, 1, 0], [1, 0, 0, 0], [1, 1, 1, 0]]
     """
 
-    print ("shift")
-
-    print (mat)
-
     new = [[], [], [], []]
     done = False
-
+    
     for i in range(4):
         for j in range(4):
             if mat[i][j][0] != 0:
@@ -182,32 +177,37 @@ def cover_up(mat):
             new[i].append([0, 0])
 
     del mat
-    print (new)
-    print (done)
     return (new, done)
 
 
-def merge(mat):
+def merge(mat, turn):
     """
+        turn : current player, gets points for merging opposite players tiles
         Returns (mat, done)
         mat  : Matrix after merging
         done : wether merge happened or not
     """
     done = False
 
+    score = 0
+
     for i in range(4):
-         for j in range(3):
-             if mat[i][j][0] == mat[i][j+1][0] and mat[i][j][0] != 0:
-                newPos = (mat[i][j][0] * 2, mat[i][j][1])
+        for j in range(3):
+            if mat[i][j][0] == mat[i][j+1][0] and mat[i][j][0] != 0:
+
+                if mat[i][j][1] == mat[i][j + 1][1] and mat[i][j][1] != turn:
+                    score += mat[i][j][0] * 2
+
+                newPos = (mat[i][j][0] * 2, turn)
                 mat[i][j] = newPos
                 mat[i][j + 1] = (0, 0)
                 done = True
-    return (mat, done)
 
+    return (mat, done, score)
 
-def up(game):
+def up(game, turn):
 
-        print("up")
+        print("Player ", turn, "up")
 
         # transpose makes it same as left
         # then shift left, merge, shift left
@@ -216,15 +216,15 @@ def up(game):
         game = transpose(game)
 
         game, shiftStatus = cover_up(game)
-        game, mergeStatus = merge(game)
+        game, mergeStatus, score = merge(game, turn)
         done = shiftStatus or mergeStatus
         game = cover_up(game)[0]
         game = transpose(game)
-        return (game, done)
+        return (game, done, score)
 
-def down(game):
+def down(game, turn):
 
-        print("down")
+        print("Player ", turn, "down")
 
         # transpose then reverse makes it same as left
         # then shift left, merge, shift left
@@ -233,27 +233,27 @@ def down(game):
         game = reverse(transpose(game))
 
         game, shiftStatus = cover_up(game)
-        game, mergeStatus = merge(game)
+        game, mergeStatus, score = merge(game, turn)
         done = shiftStatus or mergeStatus
         game = cover_up(game)[0]
         game = transpose(reverse(game))
-        return (game, done)
+        return (game, done, score)
 
-def left(game):
+def left(game, turn):
 
-        print("left")
+        print("Player ", turn, "left")
 
         # shift left, merge, shift left
 
         game, shiftStatus = cover_up(game)
-        game, mergeStatus = merge(game)
+        game, mergeStatus, score = merge(game, turn)
         done = shiftStatus or mergeStatus
         game = cover_up(game)[0]
-        return (game, done)
+        return (game, done, score)
 
-def right(game):
+def right(game, turn):
 
-        print("right")
+        print("Player ", turn, "right")
 
         # reverse makes it same as left
         # then shift left, merge, shift left
@@ -261,8 +261,8 @@ def right(game):
 
         game = reverse(game)
         game, shiftStatus = cover_up(game)
-        game, mergeStatus = merge(game)
+        game, mergeStatus, score = merge(game, turn)
         done = shiftStatus or mergeStatus
         game = cover_up(game)[0]
         game = reverse(game)
-        return (game, done)
+        return (game, done, score)

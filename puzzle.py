@@ -53,6 +53,8 @@ class GameGrid(Frame):
         self.init_grid()
         self.init_matrix()
         self.update_grid_cells()
+        self.playerOneScore = 0
+        self.playerTwoScore = 0
 
         self.turn = 1      # Player's turn (1, 2)
 
@@ -68,7 +70,7 @@ class GameGrid(Frame):
                 cell = Frame(background, bg=BACKGROUND_COLOR_CELL_EMPTY, width=SIZE/GRID_LEN, height=SIZE/GRID_LEN)
                 cell.grid(row=i, column=j, padx=GRID_PADDING, pady=GRID_PADDING)
                 # font = Font(size=FONT_SIZE, family=FONT_FAMILY, weight=FONT_WEIGHT)
-                t = Label(master=cell, text="", bg=BACKGROUND_COLOR_CELL_EMPTY, justify=CENTER, font=FONT, width=4, height=2)
+                t = Label(master=cell, text="[0, 0]", bg=BACKGROUND_COLOR_CELL_EMPTY, justify=CENTER, font=FONT, width=4, height=2)
                 t.grid()
                 grid_row.append(t)
 
@@ -101,7 +103,15 @@ class GameGrid(Frame):
         key = repr(event.char)
 
         if key in self.playerOneCommands and self.turn == 1:
-            self.matrix, done = self.playerOneCommands[repr(event.char)](self.matrix)
+
+            self.matrix, done, score = self.playerOneCommands[repr(event.char)](self.matrix, self.turn)
+            if done:
+                self.playerOneScore += score
+                print ("Player One Move  Score : ", score)
+                print ("Player One Total Score : ", self.playerOneScore)
+            else:
+                print ("Invalid Move")
+
             if done:
                 self.matrix = addNewValue(self.matrix, self.turn)
                 self.update_grid_cells()
@@ -115,9 +125,20 @@ class GameGrid(Frame):
 
                 self.turn = 2           # Change turn only if valid move
 
+            print ("\n\n")
+            print ("====================================")
+            print ("Player Two Move")
+
         elif key in self.playerTwoCommands and self.turn == 2:
 
-            self.matrix, done = self.playerTwoCommands[repr(event.char)](self.matrix)
+            self.matrix, done, score = self.playerTwoCommands[repr(event.char)](self.matrix, self.turn)
+            if done:
+                self.playerTwoScore += score
+                print ("Player Two Move  Score : ", score)
+                print ("Player Two Total Score : ", self.playerTwoScore)
+            else:
+                print ("Invalid Move")
+
             if done:
                 self.matrix = addNewValue(self.matrix, self.turn)
                 self.update_grid_cells()
@@ -130,5 +151,9 @@ class GameGrid(Frame):
                     self.grid_cells[1][2].configure(text="Lose!",bg=BACKGROUND_COLOR_CELL_EMPTY)
 
                 self.turn = 1           # Change turn only if valid move
+
+            print ("\n\n")
+            print ("====================================")
+            print ("Player One Move")
 
 gamegrid = GameGrid()
